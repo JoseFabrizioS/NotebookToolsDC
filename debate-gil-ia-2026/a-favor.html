@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vota por el GIL | Grupo por la IA Libre</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0A192F;
+            --secondary: #112240;
+            --accent: #64FFDA;
+            --text-main: #CCD6F6;
+            --text-muted: #8892B0;
+            --bg-color: #020C1B;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Botón Home / Volver */
+        .home-btn {
+            position: absolute;
+            top: 25px;
+            left: 25px;
+            background: rgba(10, 25, 47, 0.7);
+            border: 1px solid rgba(100, 255, 218, 0.3);
+            color: var(--accent);
+            padding: 12px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            backdrop-filter: blur(5px);
+            z-index: 100;
+            cursor: pointer;
+        }
+
+        .home-btn:hover {
+            background: rgba(100, 255, 218, 0.15);
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 20px rgba(100, 255, 218, 0.25);
+            color: #fff;
+            border-color: var(--accent);
+        }
+
+        .home-btn svg { width: 24px; height: 24px; }
+
+        /* Header & Logo */
+        header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 4rem 2rem;
+            background: linear-gradient(180deg, var(--secondary) 0%, var(--bg-color) 100%);
+            text-align: center;
+            border-bottom: 2px solid rgba(100, 255, 218, 0.1);
+        }
+
+        .logo-container { margin-bottom: 1.5rem; }
+
+        .vote-logo {
+            width: 100px;
+            height: 100px;
+            filter: drop-shadow(0 0 15px rgba(100, 255, 218, 0.4));
+        }
+
+        h1.party-name {
+            font-size: 4rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            background: -webkit-linear-gradient(45deg, #CCD6F6, var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+        }
+
+        h2.subtitle {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+
+        /* Buscador */
+        .search-wrapper {
+            margin: -2.5rem auto 3rem auto;
+            width: 90%;
+            max-width: 600px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 1.2rem 4rem 1.2rem 2rem; 
+            font-size: 1.1rem;
+            border: 2px solid var(--secondary);
+            border-radius: 50px;
+            background: rgba(10, 25, 47, 0.85);
+            color: white;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 20px rgba(100, 255, 218, 0.2);
+        }
+
+        .search-btn {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--accent);
+            cursor: pointer;
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .search-btn:hover { background: rgba(100, 255, 218, 0.1); color: #fff; }
+        .search-btn svg { width: 22px; height: 22px; transition: transform 0.3s ease; }
+        .search-btn:hover svg { transform: scale(1.1); }
+
+        /* Loader */
+        .loader-container {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            margin: 2rem 0;
+            flex-direction: column;
+        }
+
+        .spinner {
+            width: 50px; height: 50px;
+            border: 4px solid var(--secondary);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        .loader-text {
+            margin-top: 1rem; color: var(--accent); font-weight: 600;
+            letter-spacing: 1px; animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+        /* Grid general */
+        .arguments-container {
+            max-width: 1200px;
+            margin: 0 auto 5rem auto;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 2.5rem;
+        }
+
+        /* Tarjeta Común */
+        .arg-card {
+            background: var(--secondary);
+            border-radius: 16px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease;
+            position: relative;
+            box-shadow: 0 10px 30px -15px rgba(0,0,0,0.7);
+            border: 1px solid rgba(100, 255, 218, 0.05);
+        }
+
+        .arg-card:hover {
+            box-shadow: 0 20px 40px -15px rgba(100, 255, 218, 0.2);
+            border-color: rgba(100, 255, 218, 0.3);
+        }
+
+        /* Tarjeta Preview (Solo Título, Categoría e Imagen) */
+        .arg-card.preview {
+            cursor: pointer;
+        }
+        
+        .arg-card.preview:hover {
+            transform: translateY(-10px);
+        }
+
+        .card-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-bottom: 3px solid var(--accent);
+            transition: transform 0.5s ease;
+        }
+
+        .arg-card.preview:hover .card-image {
+            transform: scale(1.05);
+        }
+        
+        .image-wrapper { overflow: hidden; }
+
+        .card-content {
+            padding: 2rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-badge {
+            align-self: flex-start;
+            background: rgba(100, 255, 218, 0.1);
+            color: var(--accent);
+            padding: 0.4rem 1rem;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+            letter-spacing: 1px;
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            color: #fff;
+            margin-bottom: 1rem;
+            line-height: 1.3;
+            cursor: pointer;
+        }
+
+        .card-title:hover {
+            color: var(--accent);
+        }
+
+        .card-desc {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+            flex-grow: 1;
+        }
+
+        .card-fact {
+            background: rgba(10, 25, 47, 0.6);
+            padding: 1rem;
+            border-left: 3px solid var(--accent);
+            border-radius: 0 8px 8px 0;
+            font-size: 0.85rem;
+            color: #fff;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-link {
+            display: inline-flex;
+            align-items: center;
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: color 0.3s;
+            margin-top: auto;
+        }
+
+        .card-link:hover { color: #fff; }
+        .card-link svg { width: 18px; height: 18px; margin-left: 8px; transition: transform 0.3s; }
+        .card-link:hover svg { transform: translateX(5px); }
+
+        .no-results {
+            display: none; text-align: center; grid-column: 1 / -1;
+            padding: 4rem; color: var(--text-muted); font-size: 1.2rem;
+        }
+
+        /* Split Layout para el modo Detalle */
+        .split-layout {
+            display: none; /* Oculto por defecto */
+            max-width: 1200px;
+            margin: 0 auto 5rem auto;
+            padding: 0 2rem;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        .main-panel {
+            flex: 1;
+        }
+
+        .sidebar {
+            width: 300px;
+            flex-shrink: 0;
+            background: var(--secondary);
+            border: 1px solid rgba(100, 255, 218, 0.1);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px -15px rgba(0,0,0,0.7);
+            position: sticky;
+            top: 2rem;
+        }
+
+        .sidebar h3 {
+            color: #fff;
+            margin-bottom: 1.5rem;
+            font-size: 1.2rem;
+            border-bottom: 2px solid var(--bg-color);
+            padding-bottom: 0.5rem;
+        }
+
+        .cat-list {
+            list-style: none;
+        }
+
+        .cat-list li {
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: all 0.3s ease;
+            font-weight: 600;
+            font-size: 0.95rem;
+            background: rgba(10, 25, 47, 0.3);
+        }
+
+        .cat-list li:hover, .cat-list li.active {
+            background: rgba(100, 255, 218, 0.1);
+            color: var(--accent);
+            transform: translateX(5px);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-in { animation: fadeIn 0.6s forwards; }
+
+        @media (max-width: 900px) {
+            .split-layout { flex-direction: column; }
+            .sidebar { width: 100%; position: static; }
+        }
+
+        @media (max-width: 768px) {
+            .home-btn { top: 15px; left: 15px; padding: 8px; }
+            .home-btn svg { width: 20px; height: 20px; }
+            h1.party-name { font-size: 2.5rem; }
+        }
+    </style>
+</head>
+<body>
+<style>.gil-nav-extra{position:absolute;right:22px;top:23px;z-index:120;display:flex;gap:10px;align-items:center}.gil-nav-extra a{font-family:Arial,sans-serif;text-decoration:none;font-weight:700;color:#fff;background:#1c3455d9;padding:10px 14px;border:1px solid #526582;border-radius:25px;font-size:12px}.gil-nav-extra a:hover{background:#274365}@media(max-width:580px){.gil-nav-extra{right:10px;top:10px;gap:5px}.gil-nav-extra a{padding:7px 8px;font-size:10px}}</style><nav class="gil-nav-extra" aria-label="Navegación de la web"><a href="index.html">🏠 Portada</a><a href="en-contra.html">⚖ Ver en contra</a></nav>
+
+
+    <a href="#" class="home-btn" title="Volver al inicio" onclick="goHome(event)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg>
+    </a>
+
+    <header>
+        <div class="logo-container">
+            <svg class="vote-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <rect x="15" y="25" width="60" height="60" rx="12" fill="none" stroke="#64FFDA" stroke-width="6" stroke-dasharray="10 5" opacity="0.6"/>
+                <rect x="20" y="30" width="60" height="60" rx="10" fill="#112240" stroke="#CCD6F6" stroke-width="4"/>
+                <path d="M 30 55 L 45 70 L 85 20" fill="none" stroke="#64FFDA" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="85" cy="20" r="5" fill="#FFF" />
+            </svg>
+        </div>
+        <h1 class="party-name">VOTA POR EL GIL</h1>
+        <h2 class="subtitle">Grupo por la IA Libre</h2>
+    </header>
+
+    <div id="homeView">
+        <div class="search-wrapper">
+            <input type="text" id="searchInput" class="search-input" placeholder="Escribe un tema (ej. cáncer, educación, Banco Mundial, Nature)..." autocomplete="off">
+            <button id="searchBtn" class="search-btn" aria-label="Buscar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+            </button>
+        </div>
+
+        <div class="loader-container" id="loader">
+            <div class="spinner"></div>
+            <div class="loader-text">Analizando argumentos...</div>
+        </div>
+
+        <div class="arguments-container" id="cardsGrid"></div>
+        
+        <div id="noResults" class="no-results" style="display:none; max-width: 1200px; margin:0 auto;">
+            No se encontraron argumentos para tu búsqueda. ¡Prueba con otra palabra clave!
+        </div>
+    </div>
+
+    <div id="splitView" class="split-layout">
+        <div class="main-panel" id="mainPanel"></div>
+        
+        <aside class="sidebar">
+            <h3>Categorías</h3>
+            <ul class="cat-list" id="categoryList"></ul>
+        </aside>
+    </div>
+
+    <script>
+        const db = [
+            {
+                id: 1,
+                cat: "Educación Inclusiva",
+                title: "Democratizando el Saber",
+                img: "https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?auto=format&fit=crop&q=80&w=600&h=300",
+                desc: "La IA actúa como un tutor personalizado incansable, nivelando el terreno para estudiantes que no pueden costear apoyo educativo privado. No sustituye al maestro, expande su alcance.",
+                fact: "El Dato: +0.31 desviaciones estándar de mejora general en estudiantes nigerianos usando Microsoft Copilot con apoyo docente (Banco Mundial).",
+                link: "https://doi.org/10.1596/1813-9450-11125",
+                source: "Ver fuente (Banco Mundial)"
+            },
+            {
+                id: 2,
+                cat: "Avance Médico",
+                title: "Visión Biónica para Salvar Vidas",
+                img: "https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&q=80&w=600&h=300",
+                desc: "Lejos del autodiagnóstico peligroso, la IA validada y supervisada por médicos es una segunda opinión infalible. Identifica anomalías que el ojo humano podría pasar por alto por fatiga.",
+                fact: "El Dato: Ensayo MASAI (Suecia, +105k mujeres): 29% más detección de cáncer de mama y 44.2% menos carga laboral para radiólogos.",
+                link: "https://doi.org/10.1016/S2589-7500(24)00267-X",
+                source: "Ver fuente (The Lancet)"
+            },
+            {
+                id: 3,
+                cat: "Protección Civil",
+                title: "Alertas que Desafían al Tiempo",
+                img: "https://images.unsplash.com/photo-1473448912268-2022ce9509d8?auto=format&fit=crop&q=80&w=600&h=300",
+                desc: "En geografías complejas, la IA predice desastres naturales donde no hay sensores físicos. Otorga el recurso más valioso durante una crisis climática: tiempo para evacuar.",
+                fact: "El Dato: Pronóstico de inundaciones fluviales extremas con hasta 5 días de anticipación en cuencas sin estaciones (Nature, 2024).",
+                link: "https://doi.org/10.1038/s41586-024-07145-1",
+                source: "Ver fuente (Nature)"
+            },
+            {
+                id: 4,
+                cat: "Evolución Laboral",
+                title: "El Impulso al Talento Joven",
+                img: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=80&w=600&h=300",
+                desc: "La IA no viene a quitarnos el trabajo, viene a potenciarnos. Actúa como un mentor constante que eleva rápidamente el rendimiento de los trabajadores menos experimentados.",
+                fact: "El Dato: +15% de problemas resueltos por hora en atención al cliente, beneficiando mayormente a los trabajadores novatos.",
+                link: "https://doi.org/10.1093/qje/qjae044",
+                source: "Ver fuente (The Q.J. of Economics)"
+            },
+            {
+                id: 5,
+                cat: "Democratización",
+                title: "Poder Tecnológico sin Barreras",
+                img: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80&w=600&h=300",
+                desc: "La tecnología más poderosa de la historia está dejando de ser un lujo de millonarios. Hoy, investigadores, universidades y PYMES pueden acceder a herramientas de primer nivel.",
+                fact: "El Dato: El costo de los modelos de IA de alto rendimiento cayó más de 280 veces entre finales de 2022 y 2024.",
+                link: "https://hai.stanford.edu/ai-index/2025-ai-index-report",
+                source: "Ver fuente (Stanford AI Index)"
+            },
+            {
+                id: 6,
+                cat: "Regulación Justa",
+                title: "Controles Inteligentes, No Prohibición",
+                img: "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&q=80&w=600&h=300",
+                desc: "Defender la libertad no es defender la anarquía. Se debe sancionar severamente a quien usa la tecnología para cometer abusos (como los deepfakes), sin cortarle las alas al resto de la sociedad.",
+                fact: "El Dato: El Perú ya cuenta con la Ley N.º 31814 que promueve la IA, y los D.L. 1625 / Ley 32314 que sancionan penalmente el abuso.",
+                link: "https://www.gob.pe/",
+                source: "Ver marco legal (El Peruano)"
+            }
+        ];
+
+        const homeView = document.getElementById('homeView');
+        const splitView = document.getElementById('splitView');
+        const cardsGrid = document.getElementById('cardsGrid');
+        const mainPanel = document.getElementById('mainPanel');
+        const categoryList = document.getElementById('categoryList');
+        const searchInput = document.getElementById('searchInput');
+        const loader = document.getElementById('loader');
+        const noResults = document.getElementById('noResults');
+
+        const categories = [...new Set(db.map(item => item.cat))];
+
+        function removeAccents(str) {
+            return str.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+        }
+
+        function createPreviewCard(item, delayIndex) {
+            return `
+                <article class="arg-card preview animate-in" style="animation-delay: ${delayIndex * 0.1}s;" onclick="showDetail(${item.id})">
+                    <div class="image-wrapper">
+                        <img src="${item.img}" alt="${item.cat}" class="card-image">
+                    </div>
+                    <div class="card-content">
+                        <span class="card-badge">${item.cat}</span>
+                        <h3 class="card-title">${item.title}</h3>
+                    </div>
+                </article>
+            `;
+        }
+
+        function createDetailCard(item) {
+            return `
+                <article class="arg-card animate-in" style="cursor:default;">
+                    <div class="image-wrapper">
+                        <img src="${item.img}" alt="${item.cat}" class="card-image" style="height: 300px;">
+                    </div>
+                    <div class="card-content">
+                        <span class="card-badge">${item.cat}</span>
+                        <h3 class="card-title" style="font-size: 2rem; cursor:default;">${item.title}</h3>
+                        <p class="card-desc">${item.desc}</p>
+                        <div class="card-fact">
+                            <strong>${item.fact}</strong>
+                        </div>
+                        <a href="${item.link}" target="_blank" class="card-link">
+                            ${item.source}
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                            </svg>
+                        </a>
+                    </div>
+                </article>
+            `;
+        }
+
+        function renderSidebar(activeCat = null) {
+            categoryList.innerHTML = '';
+            categories.forEach(cat => {
+                const li = document.createElement('li');
+                li.innerText = cat;
+                if (cat === activeCat) li.classList.add('active');
+                li.onclick = () => showCategory(cat);
+                categoryList.appendChild(li);
+            });
+        }
+
+        function goHome(e) {
+            if(e) e.preventDefault();
+            splitView.style.display = 'none';
+            homeView.style.display = 'block';
+            searchInput.value = ''; 
+            renderHomeGrid(db);
+        }
+
+        function renderHomeGrid(items) {
+            cardsGrid.innerHTML = items.map((item, index) => createPreviewCard(item, index)).join('');
+            noResults.style.display = items.length === 0 ? 'block' : 'none';
+        }
+
+        function showDetail(id) {
+            const item = db.find(x => x.id === id);
+            if(!item) return;
+
+            homeView.style.display = 'none';
+            splitView.style.display = 'flex';
+            
+            mainPanel.innerHTML = createDetailCard(item);
+            renderSidebar(item.cat);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function showCategory(catName) {
+            const items = db.filter(x => x.cat === catName);
+            
+            mainPanel.innerHTML = `
+                <h2 style="color: var(--accent); margin-bottom: 1.5rem; font-size: 1.8rem;">
+                    Categoría: ${catName}
+                </h2>
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 2rem;">
+                    ${items.map((item, index) => createPreviewCard(item, index)).join('')}
+                </div>
+            `;
+            renderSidebar(catName);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function performSearch() {
+            const rawQuery = searchInput.value.trim();
+            const query = removeAccents(rawQuery);
+            
+            searchInput.blur();
+            cardsGrid.style.display = 'none';
+            noResults.style.display = 'none';
+            loader.style.display = 'flex';
+            
+            setTimeout(() => {
+                loader.style.display = 'none';
+                cardsGrid.style.display = 'grid';
+                
+                const filtered = db.filter(item => {
+                    // MODIFICACIÓN: Ahora se busca en TODAS las propiedades (título, categoría, descripción, información/dato, link y fuente)
+                    const textToSearch = removeAccents(item.title + " " + item.cat + " " + item.desc + " " + item.fact + " " + item.source + " " + item.link);
+                    return textToSearch.includes(query) || query === '';
+                });
+
+                renderHomeGrid(filtered);
+            }, 800); 
+        }
+
+        searchInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                performSearch();
+            }
+        });
+
+        document.getElementById('searchBtn').addEventListener('click', performSearch);
+
+        renderHomeGrid(db);
+    </script>
+</body>
+</html>
